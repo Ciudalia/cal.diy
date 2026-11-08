@@ -1,0 +1,68 @@
+ Image caldiy-personal:local Building 
+#1 DONE 0.0s
+#2 DONE 0.0s
+#3 DONE 0.0s
+#4 DONE 0.0s
+#5 DONE 0.1s
+#5 DONE 1.2s
+#6 DONE 1.2s
+#5 DONE 1.5s
+#5 DONE 2.4s
+#5 DONE 4.8s
+#5 DONE 5.7s
+#5 DONE 5.7s
+#7 DONE 0.3s
+#8 DONE 0.0s
+#9 DONE 0.0s
+#10 DONE 0.0s
+#11 DONE 0.0s
+#13 DONE 0.2s
+#14 DONE 0.1s
+#15 DONE 0.8s
+#16 DONE 0.6s
+#12 DONE 2.3s
+#17 DONE 2.1s
+#18 69.98 ➤ YN0007: │ dotenv-checker@npm:1.1.5 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ @prisma/engines@npm:5.22.0 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ @prisma/engines@npm:6.16.2 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ @nestjs/core@npm:10.4.20 [11945] must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ sharp@npm:0.33.5 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ @prisma/engines@npm:6.16.1 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ deasync@npm:0.1.31 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ esbuild@npm:0.23.1 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ @prisma/engines@npm:6.15.0 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ msw@npm:2.7.0 [266b3] must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ @parcel/watcher@npm:2.5.1 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ esbuild@npm:0.25.12 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ yarn@npm:1.22.19 must be built because it never has been before or the last one failed
+#18 69.98 ➤ YN0007: │ @sentry-internal/node-cpu-profiler@npm:2.2.0 must be built because it never has been before or the last one failed
+#18 69.99 ➤ YN0007: │ sqlite3@npm:5.1.7 [e799a] must be built because it never has been before or the last one failed
+#18 69.99 ➤ YN0007: │ core-js@npm:3.39.0 must be built because it never has been before or the last one failed
+#18 69.99 ➤ YN0007: │ @swc/core@npm:1.15.8 [22629] must be built because it never has been before or the last one failed
+#18 69.99 ➤ YN0007: │ @depot/cli@npm:0.0.1-cli.2.80.0 must be built because it never has been before or the last one failed
+#18 69.99 ➤ YN0007: │ msgpackr-extract@npm:3.0.3 must be built because it never has been before or the last one failed
+#18 69.99 ➤ YN0007: │ @sentry/cli@npm:2.58.6 must be built because it never has been before or the last one failed
+#18 69.99 ➤ YN0007: │ protobufjs@npm:7.5.5 must be built because it never has been before or the last one failed
+#18 72.55 ➤ YN0007: │ calcom-monorepo@workspace:. must be built because it never has been before or the last one failed
+#18 72.55 ➤ YN0007: │ prisma@npm:6.16.1 [5d0b5] must be built because it never has been before or the last one failed
+#18 89.50 ➤ YN0007: │ @prisma/client@npm:6.16.1 [5d0b5] must be built because it never has been before or the last one failed
+#18 DONE 92.7s
+#19 DONE 36.7s
+#20 DONE 8.9s
+#21 DONE 1.3s
+#22 DONE 103.5s
+#23 DONE 0.3s
+#24 DONE 0.0s
+#25 DONE 15.4s
+#26 DONE 2.1s
+#27 DONE 3.4s
+#28 DONE 0.1s
+#29 DONE 0.0s
+#30 DONE 0.1s
+#31 DONE 0.7s
+#32 DONE 29.7s
+#33 naming to docker.io/library/caldiy-personal:local done
+#33 DONE 143.1s
+#34 resolving provenance for metadata file
+#34 DONE 0.0s
+ Image caldiy-personal:local Built 

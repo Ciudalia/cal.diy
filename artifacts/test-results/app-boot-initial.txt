@@ -1,0 +1,3 @@
++ scripts/replace-placeholder.sh http://127.0.0.1:3000 http://127.0.0.1:3000
+Nothing to replace, the value is already set to http://127.0.0.1:3000.
++ scripts/wait-for-it.sh database:5432 -- echo database is up

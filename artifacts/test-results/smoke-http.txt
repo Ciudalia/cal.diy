@@ -1,0 +1,87 @@
+=== docker ps ===
+NAME                    IMAGE                                                                                          COMMAND                  SERVICE    CREATED          STATUS                     PORTS
+caldiy-personal-app     caldiy-personal:local                                                                          "docker-entrypoint.s…"   calcom     6 minutes ago    Up 6 minutes (unhealthy)   127.0.0.1:3000->3000/tcp
+caldiy-personal-db      postgres:16-bookworm@sha256:5264710be20f409750ac6dc4e5706dcef929c87e241605463f0f9aefa932a8d9   "docker-entrypoint.s…"   database   14 minutes ago   Up 14 minutes (healthy)    127.0.0.1:5432->5432/tcp
+caldiy-personal-redis   redis:7-bookworm@sha256:2e3eb11462c4e3759e6972678dd051d150ff54b1e60714b3c33b701260172a90       "docker-entrypoint.s…"   redis      14 minutes ago   Up 14 minutes (healthy)    127.0.0.1:6379->6379/tcp
+=== last 80 log lines (redacted) ===
++ scripts/replace-placeholder.sh http://127.0.0.1:3000 http://127.0.0.1:3000
+Nothing to replace, the value is already set to http://127.0.0.1:3000.
++ scripts/wait-for-it.sh database:5432 -- echo database is up
+Operation timed out
++ npx prisma migrate deploy --schema /calcom/packages/prisma/schema.prisma
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Prisma schema loaded from packages/prisma/schema.prisma
+Datasource "db": PostgreSQL database "calendso", schema "public" at "database:5432"
+Error: P1001: Can't reach database server at `database:5432`
+
+Please make sure your database server is running at `database:5432`.
+
++ npx ts-node --transpile-only /calcom/scripts/seed-app-store.ts
+Could not upsert app: apple-calendar. Error: PrismaClientKnownRequestError: 
+Invalid `prisma.app.findFirst()` invocation:
+
+
+Operation has timed out
+    at pi.handleRequestError (/calcom/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at pi.handleAndLogRequestError (/calcom/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at pi.request (/calcom/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async a (/calcom/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at async createApp (/calcom/scripts/seed-app-store.ts:29:22)
+    at async main (/calcom/scripts/seed-app-store.ts:96:3)
+    at async /calcom/scripts/seed-app-store.ts:267:5 {
+  code: 'P1008',
+  meta: {
+    modelName: 'App',
+    driverAdapterError: DriverAdapterError: SocketTimeout
+        at PrismaPgAdapter.onError (/calcom/node_modules/@prisma/adapter-pg/dist/index.js:689:11)
+        at PrismaPgAdapter.performIO (/calcom/node_modules/@prisma/adapter-pg/dist/index.js:684:12)
+        at processTicksAndRejections (node:internal/process/task_queues:103:5)
+        at async PrismaPgAdapter.queryRaw (/calcom/node_modules/@prisma/adapter-pg/dist/index.js:604:30)
+        at async /calcom/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22
+        at async Un (/calcom/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/calcom/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:175:26)
+        at async e.interpretNode (/calcom/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:202:41)
+        at async e.interpretNode (/calcom/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:261:41)
+        at async e.run (/calcom/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:83:23) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '6.16.1'
+}
+Error adding google credentials to DB: Unexpected end of JSON input
+Could not upsert app: caldav-calendar. Error: PrismaClientKnownRequestError: 
+Invalid `prisma.app.findFirst()` invocation:
+
+
+Operation has timed out
+    at pi.handleRequestError (/calcom/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at pi.handleAndLogRequestError (/calcom/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at pi.request (/calcom/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async a (/calcom/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at async createApp (/calcom/scripts/seed-app-store.ts:29:22)
+    at async main (/calcom/scripts/seed-app-store.ts:108:3)
+    at async /calcom/scripts/seed-app-store.ts:267:5 {
+  code: 'P1008',
+  meta: {
+    modelName: 'App',
+    driverAdapterError: DriverAdapterError: SocketTimeout
+        at PrismaPgAdapter.onError (/calcom/node_modules/@prisma/adapter-pg/dist/index.js:689:11)
+        at PrismaPgAdapter.performIO (/calcom/node_modules/@prisma/adapter-pg/dist/index.js:684:12)
+        at processTicksAndRejections (node:internal/process/task_queues:103:5)
+        at async PrismaPgAdapter.queryRaw (/calcom/node_modules/@prisma/adapter-pg/dist/index.js:604:30)
+        at async /calcom/node_modules/@prisma/client-engine-runtime/src/tracing.ts:68:22
+        at async Un (/calcom/node_modules/@prisma/client-engine-runtime/src/tracing.ts:56:10)
+        at async e.interpretNode (/calcom/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:175:26)
+        at async e.interpretNode (/calcom/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:202:41)
+        at async e.interpretNode (/calcom/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:261:41)
+        at async e.run (/calcom/node_modules/@prisma/client-engine-runtime/src/interpreter/query-interpreter.ts:83:23) {
+      cause: [Object]
+    }
+  },
+  clientVersion: '6.16.1'
+}
+=== curl login headers ===

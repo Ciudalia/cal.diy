@@ -117,3 +117,11 @@ agents/devin-knowledge.json
 
 # pagefind
 _pagefind/
+
+# Personal agenda Docker artifacts: secrets and bulky local build outputs
+artifacts/secrets-local/
+artifacts/*.tar
+artifacts/*.tar.gz
+artifacts/oci-image/
+artifacts/test-results/*.log
+artifacts/test-results/raw/

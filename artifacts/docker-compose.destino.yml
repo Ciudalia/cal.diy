@@ -1,0 +1,110 @@
+# Cal.diy — Compose DESTINO (VPS futuro / carga de imagen ya construida)
+# - SIN build: (usa imagen precargada via docker load)
+# - BD y Redis SIN ports: (solo red interna)
+# - App SOLO en 127.0.0.1:3000 (TLS en reverse proxy externo, no aquí)
+# - SMTP: Mailpit como sumidero interno (sin publicación de puertos, sin envíos externos)
+#
+# Imagen esperada tras docker load:
+#   caldiy-personal:2eb48ecc-agenda-amd64
+#   Id: sha256:60c19adab4ea654fab782afe355e0b7c16ecbc0429395e69351315010197c435
+#
+# NO aplicar reglas iptables/FORWARD «especiales» en el VPS.
+# Secretos: archivo local fuera de git (ver env.personal.example / RUNBOOK).
+
+name: caldiy-destino
+
+volumes:
+  database-data:
+  redis-data:
+  mailpit-data:
+
+networks:
+  stack:
+    name: caldiy-destino-stack
+    driver: bridge
+
+services:
+  database:
+    container_name: caldiy-destino-db
+    image: postgres:16-bookworm@sha256:5264710be20f409750ac6dc4e5706dcef929c87e241605463f0f9aefa932a8d9
+    restart: unless-stopped
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    networks:
+      - stack
+    # Sin ports: — no exponer Postgres al host ni a la red pública
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    container_name: caldiy-destino-redis
+    image: redis:7-bookworm@sha256:2e3eb11462c4e3759e6972678dd051d150ff54b1e60714b3c33b701260172a90
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - stack
+    # Sin ports:
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mailpit:
+    container_name: caldiy-destino-mailpit
+    image: axllent/mailpit:v1.27@sha256:e22dce5b36f93c77082e204a3942fb6b283b7896e057458400a4c88344c3df68
+    restart: unless-stopped
+    networks:
+      - stack
+    volumes:
+      - mailpit-data:/data
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      MP_MAX_MESSAGES: 500
+    # Sin ports: — UI/SMTP solo en red interna; la app usa mailpit:1025
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  calcom:
+    container_name: caldiy-destino-app
+    image: caldiy-personal:2eb48ecc-agenda-amd64
+    # SIN build: — la imagen se carga desde el artefacto docker-save
+    restart: unless-stopped
+    networks:
+      - stack
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - secrets-local/env.destino.runtime
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      DATABASE_HOST: database:5432
+      NEXT_PUBLIC_WEBAPP_URL: https://agenda.ciudalia.com
+      NEXTAUTH_URL: https://agenda.ciudalia.com
+      BUILT_NEXT_PUBLIC_WEBAPP_URL: https://agenda.ciudalia.com
+      CALCOM_TELEMETRY_DISABLED: "1"
+      EMAIL_SERVER_HOST: mailpit
+      EMAIL_SERVER_PORT: "1025"
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@agenda.ciudalia.com}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Cal.diy}
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
