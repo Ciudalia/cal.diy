@@ -1,71 +1,55 @@
-# Resultados de construcción y smoke tests (Cal.diy personal)
+# Resultados — export REAL + portabilidad destino
 
-**Estado: ÉXITO verificado en entorno remoto del agente** (no es simulación).
+## Distinción explícita: disponible vs estimado
 
-## Referencia exacta
-
-| Campo | Valor |
+| Concepto | Estado |
 | --- | --- |
-| Fork | `Ciudalia/cal.diy` (parent `calcom/cal.diy`) |
-| Commit | `2eb48eccd8aca8a0c0ffabf28cf92e298b33ecee` |
-| Fecha | 2026-11-03T21:35:06Z |
-| Mensaje | chore(atoms): stop publishing @calcom/atoms from cal.diy (#30445) |
-| Imagen local | `caldiy-personal:local` (`sha256:805f72d0613a…`) |
+| Tamaño imagen Docker (`docker image inspect`) | **MEDIDO**: `7477436455` bytes |
+| Archivo `docker save \| gzip -1` | **EXPORT REAL en disco**: `1563630359` bytes |
+| SHA256 del archivo gzip | **REAL**: `b33da0f8f0fef04ea35cf7c5f55297055b60b4d56309abb4b9b5becaa3895f2c` |
+| Image ID completo | `sha256:60c19adab4ea654fab782afe355e0b7c16ecbc0429395e69351315010197c435` |
+| Entrega vía `/opt/cursor/artifacts` (fuse.agent-store) | **BLOQUEADA por límite real ~96 MiB** (128 MiB falla al cerrar el archivo). El gzip de 1,46 GiB **no cabe**. No se fragmentó ni se publicó en registro. |
+| Manifiesto + checksum en store del agente | **Disponible** (archivos pequeños): ver `/opt/cursor/artifacts/EXPORT-MANIFEST.md` |
+| Blob OCI descargable desde el store del agente | **NO disponible** (limitación del canal) |
+| Blob OCI en disco del VM del agente | **SÍ**: `/workspace/artifacts/oci-image/caldiy-personal-2eb48ecc-agenda-amd64.docker.tar.gz` |
 
-## Build
+Verificación del export: `gzip -t` OK; `docker load` del archivo recargó la misma imagen con el mismo Image ID.
 
-| Métrica | Valor |
+## Referencia
+
+- Commit: `2eb48eccd8aca8a0c0ffabf28cf92e298b33ecee`
+- Tag: `caldiy-personal:2eb48ecc-agenda-amd64`
+- Plataforma: `linux/amd64`
+- URL embebida (rebuild): `https://agenda.ciudalia.com`
+- Telemetría: deshabilitada
+
+## Auditoría de secretos / URL
+
+| Chequeo | Resultado |
 | --- | --- |
-| Inicio UTC | 2026-11-08T21:23:02Z |
-| Fin UTC | 2026-11-08T21:31:05Z |
-| Duración | ~8 min |
-| Dockerfile | `artifacts/Dockerfile` (Node bookworm fijado por digest) |
-| Tamaño imagen sin comprimir | **7 477 407 377 bytes (~6,96 GiB)** |
-| Estimación `docker save \| gzip` | **1 563 483 906 bytes (~1,46 GiB)** |
-| Arquitectura | linux/amd64 |
+| Secretos de runtime NUEVOS en filesystem de la imagen | 0 coincidencias |
+| Dummies de build en filesystem final | 0 coincidencias |
+| Secretos en Env final de la imagen | no presentes (solo URL/NODE_ENV) |
+| `127.0.0.1:5432` en capas | solo fixtures de tests de Prisma (`prisma+postgres://…/test`), sin password |
+| Chunks estáticos con agenda URL | 14 archivos |
+| Chunks estáticos con `http://127.0.0.1:3000` | 0 (tras rebuild) |
 
-No se publicó a Docker Hub, GHCR ni Scarf. No se usó imagen comunitaria no auditada.
+## Pruebas NUEVAS ejecutadas (esta iteración)
 
-## Smoke tests reales
+1. Rebuild con URL destino + secretos dummy de build (no runtime).
+2. `docker save | gzip -1` → archivo real + `sha256sum` + `gzip -t`.
+3. `docker load` del gzip → mismo Image ID.
+4. Medición del límite del store FUSE (96 MiB OK / 128 MiB FAIL).
+5. Stack `docker-compose.destino.yml`: sin `build:`, BD/Redis/Mailpit **sin ports**, app `127.0.0.1:3000`.
+6. Smoke: `/auth/setup?step=1` → **200**; 595 migraciones up to date; health **healthy**.
+7. Portabilidad: HTML contiene `agenda.ciudalia.com`; `Host: agenda.ciudalia.com` → 200 vía loopback (sin DNS).
+8. SMTP: `EMAIL_SERVER_HOST=mailpit`, puerto 1025 alcanzable en red interna; **sin ports** al host; sin envíos externos.
+9. Escaneo de secretos runtime/build en la imagen tras las pruebas.
 
-Stack: PostgreSQL 16 + Redis 7 privados en red Compose; puertos solo en `127.0.0.1`. App en loopback `:3000`.
+## Compose destino
 
-| Prueba | Resultado |
-| --- | --- |
-| Postgres healthy | OK |
-| Redis healthy | OK |
-| `prisma migrate deploy` | OK (595 migraciones; schema up to date) |
-| Seed app-store | OK |
-| `yarn start` / Next.js Ready | OK |
-| `GET /auth/login` | **307 → /auth/setup** |
-| `GET /auth/setup` | **307 → /auth/setup?step=1** |
-| `GET /auth/setup?step=1` | **200** HTML (~348 KB) con señales setup/admin/password/Cal.diy |
-| Docker HEALTHCHECK | **healthy** |
-| SMTP real | No usado (host `127.0.0.1:1025`, sin envíos) |
-| Telemetría | `CALCOM_TELEMETRY_DISABLED=1` |
+Ver `artifacts/docker-compose.destino.yml`.
 
-## Incidente de red (documentado, resuelto)
+## Runbook
 
-En este host coexistían reglas **iptables-legacy** (FORWARD policy DROP) e **iptables-nft** (Docker). El bridge Compose resolvía DNS pero el TCP entre contenedores hacía timeout. Tras `iptables-legacy -P FORWARD ACCEPT`, la conectividad `database:5432` / `redis:6379` funcionó y el smoke pasó.
-
-En un VPS Ubuntu 24.04 “limpio” con solo el backend nft de Docker suele no hacer falta; si aparece el mismo síntoma, aplicar la misma corrección o unificar el backend de iptables.
-
-## Traslado OCI seguro (sin acceso VPS desde aquí)
-
-```bash
-# En la máquina de build (ejemplo)
-docker save caldiy-personal:local | gzip -1 > caldiy-personal-local.tar.gz
-sha256sum caldiy-personal-local.tar.gz > caldiy-personal-local.tar.gz.sha256
-# Transferir por canal privado (scp/rsync/USB cifrado). NO subir a registro público sin permiso.
-# En destino:
-gunzip -c caldiy-personal-local.tar.gz | docker load
-```
-
-Tamaño esperado ~1,5 GiB comprimido. No se dejó el `.tar.gz` en git (ignorado).
-
-## Límites conscientes
-
-- No se alteró DNS de `agenda.ciudalia.com` ni se conectó al VPS.
-- OpenWA y demás servicios del VPS no se tocaron.
-- Secretos solo en `artifacts/secrets-local/` (gitignored), sintéticos.
-- SMTP de producción pendiente; pruebas sin sends reales.
+Ver `artifacts/RUNBOOK.es.md` (sin recomendar iptables/FORWARD en VPS).

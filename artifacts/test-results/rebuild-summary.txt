@@ -1,0 +1,25 @@
+#1 DONE 0.0s
+#2 DONE 0.0s
+#3 DONE 0.0s
+#4 DONE 0.0s
+#5 DONE 1.3s
+#12 DONE 1.1s
+#13 DONE 3.8s
+#14 DONE 90.6s
+#15 DONE 36.9s
+#16 DONE 9.4s
+#17 DONE 1.4s
+#18 98.97 ├ ƒ /auth/error
+#18 DONE 100.1s
+#19 DONE 0.3s
+#24 DONE 1.1s
+#25 DONE 3.2s
+#26 DONE 0.1s
+#27 DONE 0.0s
+#28 DONE 0.1s
+#29 DONE 0.8s
+#31 DONE 29.9s
+#32 exporting manifest sha256:df42e52ac195a9e6b77265511b59f5574d81221e7b9ff01df4440f88e10a2a47 done
+#32 exporting manifest list sha256:60c19adab4ea654fab782afe355e0b7c16ecbc0429395e69351315010197c435 done
+#32 naming to docker.io/library/caldiy-personal:2eb48ecc-agenda-amd64 done
+#32 DONE 142.2s

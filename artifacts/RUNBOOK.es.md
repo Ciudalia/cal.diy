@@ -1,101 +1,89 @@
-# Runbook: Cal.diy agenda personal / pruebas (Ciudalia)
+# Runbook: Cal.diy agenda personal / destino (Ciudalia)
 
-Objetivo: construir y operar **Cal.diy** desde el fork `Ciudalia/cal.diy` con PostgreSQL privado y app en loopback, sin usar imágenes Docker Hub/Scarf no verificadas y sin tocar DNS/VPS/OpenWA.
+## 1. Artefacto de imagen (export REAL)
 
-## 1. Requisitos
+En el VM del agente (ruta local, **no** git):
 
-- Ubuntu 24.04 amd64 (verificado también en agente cloud)
-- Docker Engine ≈ 29.x + Compose plugin ≈ 5.x
-- ≥ 4 vCPU, ≥ 16 GiB RAM, disco libre generoso (build + imagen ~7 GiB + capas)
-- Ref congelada: ver `artifacts/REF.txt` (`2eb48eccd8aca8a0c0ffabf28cf92e298b33ecee`)
+```
+/workspace/artifacts/oci-image/caldiy-personal-2eb48ecc-agenda-amd64.docker.tar.gz
+```
 
-## 2. Preparar secretos sintéticos (nunca en git)
+- Bytes: `1563630359`
+- SHA256: `b33da0f8f0fef04ea35cf7c5f55297055b60b4d56309abb4b9b5becaa3895f2c`
+- Image ID: `sha256:60c19adab4ea654fab782afe355e0b7c16ecbc0429395e69351315010197c435`
+- Tag: `caldiy-personal:2eb48ecc-agenda-amd64`
+- Plataforma: `linux/amd64`
+
+**Canal store del agente (`/opt/cursor/artifacts`)**: límite real ~96 MiB; el gzip no cabe. Solo hay manifiesto/checksum allí. Transportar el blob por canal privado del operador (scp/rsync/USB) capaz de ~1,5 GiB. No fragmentar ni publicar en registro externo.
+
+```bash
+sha256sum -c caldiy-personal-2eb48ecc-agenda-amd64.docker.tar.gz.sha256
+gunzip -c caldiy-personal-2eb48ecc-agenda-amd64.docker.tar.gz | docker load
+# o: docker load -i caldiy-personal-2eb48ecc-agenda-amd64.docker.tar.gz
+```
+
+## 2. Secretos runtime (nuevos, fuera de git)
 
 ```bash
 mkdir -p artifacts/secrets-local
-cp artifacts/env.personal.example artifacts/secrets-local/env.personal
-# Editar y generar:
-#   NEXTAUTH_SECRET=$(openssl rand -base64 32)
-#   CALENDSO_ENCRYPTION_KEY=$(openssl rand -base64 24)
-#   POSTGRES_PASSWORD=...  JWT_SECRET=...  CRON_API_KEY=...
-# Añadir BUILD_DATABASE_URL=postgresql://USER:PASS@127.0.0.1:5432/DB
-chmod 600 artifacts/secrets-local/env.personal
+cp artifacts/env.personal.example artifacts/secrets-local/env.destino.runtime
+# Generar NEXTAUTH_SECRET, CALENDSO_ENCRYPTION_KEY, POSTGRES_PASSWORD, JWT_SECRET
+# NEXT_PUBLIC_WEBAPP_URL=https://agenda.ciudalia.com
+# EMAIL_SERVER_HOST=mailpit  EMAIL_SERVER_PORT=1025
+chmod 600 artifacts/secrets-local/env.destino.runtime
 ```
 
-## 3. Arrancar base de datos
+No meter secretos en el export OCI ni en git.
+
+## 3. Arranque destino
 
 ```bash
-set -a && source artifacts/secrets-local/env.personal && set +a
-# Si el bridge Docker falla con timeouts TCP entre contenedores:
-#   sudo iptables-legacy -P FORWARD ACCEPT
-docker compose -f artifacts/docker-compose.personal.yml --env-file artifacts/secrets-local/env.personal up -d database redis
+set -a && source artifacts/secrets-local/env.destino.runtime && set +a
+docker compose -f artifacts/docker-compose.destino.yml --env-file artifacts/secrets-local/env.destino.runtime up -d
 ```
 
-Comprobar: `docker compose -f artifacts/docker-compose.personal.yml ps` → database/redis **healthy**, puertos `127.0.0.1:5432` y `:6379`.
+Propiedades del compose destino:
 
-## 4. Construir imagen (reproducible)
+- **Sin `build:`** — solo imagen precargada
+- **BD y Redis sin `ports:`** — solo red interna
+- **Mailpit** sumidero SMTP interno (sin `ports:`)
+- **App** publicada solo en `127.0.0.1:3000`
+- TLS: terminar en reverse proxy del host (no desactivar TLS en producción)
+
+## 4. Smoke
 
 ```bash
-export DOCKER_BUILDKIT=1
-docker compose -f artifacts/docker-compose.personal.yml --env-file artifacts/secrets-local/env.personal build calcom
+curl -sI http://127.0.0.1:3000/auth/setup?step=1
+curl -sI -H 'Host: agenda.ciudalia.com' http://127.0.0.1:3000/auth/setup?step=1
+./artifacts/scripts/smoke.sh
+docker exec caldiy-destino-app npx prisma migrate status --schema /calcom/packages/prisma/schema.prisma
 ```
 
-Notas:
+Primera visita → flujo `/auth/setup` para crear admin.
 
-- Build usa `network: host` + `BUILD_DATABASE_URL` a `127.0.0.1:5432` (Postgres ya publicado en loopback).
-- Telemetría deshabilitada por defecto en el Dockerfile adaptado.
-- Base Node: `node:22-bookworm@sha256:7702d8aa…` (ver Dockerfile).
+## 5. Correo
 
-## 5. Arrancar aplicación y migraciones
+SMTP real **pendiente**. Con este stack, todo mail va a **Mailpit** (`mailpit:1025`) en la red compose. No hay publicación de puertos SMTP/UI al host; no hay envíos externos.
 
-```bash
-docker compose -f artifacts/docker-compose.personal.yml --env-file artifacts/secrets-local/env.personal up -d calcom
-docker logs -f caldiy-personal-app
-# Esperar: migrate deploy OK, seed apps, «Ready», HEALTHCHECK healthy
-```
-
-`scripts/start.sh` ejecuta `prisma migrate deploy` y seed del app-store automáticamente.
-
-## 6. Smoke checks
-
-```bash
-curl -sI http://127.0.0.1:3000/auth/login    # 307 → /auth/setup (primera instalación)
-curl -sI http://127.0.0.1:3000/auth/setup    # 307 → ?step=1
-curl -sI 'http://127.0.0.1:3000/auth/setup?step=1'  # 200
-docker exec caldiy-personal-app npx prisma migrate status --schema /calcom/packages/prisma/schema.prisma
-```
-
-Abrir en navegador local: `http://127.0.0.1:3000/auth/setup` y crear el usuario admin (datos de prueba).
-
-## 7. Correo
-
-Configurar SMTP real **más adelante**. En pruebas: `EMAIL_SERVER_HOST=127.0.0.1` / puerto `1025` (MailHog u otro sumidero). No enviar correo real desde este stack.
-
-## 8. Mantenimiento / restauración
+## 6. Mantenimiento
 
 | Acción | Comando |
 | --- | --- |
-| Parar app | `docker compose -f artifacts/docker-compose.personal.yml stop calcom` |
-| Backup DB | `docker exec caldiy-personal-db pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" \| gzip > backup.sql.gz` |
-| Restaurar DB | `gunzip -c backup.sql.gz \| docker exec -i caldiy-personal-db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"` |
-| Logs | `docker logs --since 1h caldiy-personal-app` |
-| Actualizar código | checkout nuevo commit auditado → rebuild → recreate calcom |
-| Destruir volúmenes (borra datos) | `docker compose -f artifacts/docker-compose.personal.yml down -v` |
+| Parar | `docker compose -f artifacts/docker-compose.destino.yml stop` |
+| Backup DB | `docker exec caldiy-destino-db pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" \| gzip > backup.sql.gz` |
+| Restaurar | `gunzip -c backup.sql.gz \| docker exec -i caldiy-destino-db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"` |
+| Actualizar imagen | cargar nuevo tar verificado → `compose up -d calcom` |
 
-Volúmenes: `caldiy-personal_database-data`, `caldiy-personal_redis-data`.
+## 7. VPS futuro (checklist, sin ejecutar desde aquí)
 
-## 9. Destino futuro VPS (sin ejecutar desde aquí)
+- Ubuntu 24.04, Docker 29, Compose 5; proyecto aparte de OpenWA
+- Cargar imagen + compose destino; secretos solo en el host
+- Reverse proxy TLS hacia `127.0.0.1:3000`
+- DNS `agenda.ciudalia.com`: cutover solo cuando 443 local responda (hoy Zoho — no alterar aún)
+- **No** aplicar workarounds iptables/FORWARD del entorno del agente cloud al VPS
 
-- Host: Ubuntu 24.04, Docker 29, Compose 5, 4 vCPU / 16 GB / disco amplio.
-- Colocar stack **aparte** de OpenWA (otros compose/project name/puertos).
-- TLS: terminar en reverse proxy (Caddy/Nginx) con certificados reales; **no** desactivar TLS en producción.
-- DNS `agenda.ciudalia.com`: cambiar solo cuando el proxy local responda en 443 (ahora Zoho — no alterar hasta cutover).
-- Traslado imagen: ver `RESULTADOS.md` (`docker save | gzip`, checksum, canal privado). Alternativa: rebuild en el VPS desde este commit (recomendado si hay CPU/RAM).
+## 8. Seguridad / alcance
 
-## 10. Seguridad / licencia
-
-- Conservar `LICENSE` (MIT) y avisos de copyright.
-- No commitear `.env` ni `artifacts/secrets-local/`.
-- No exponer Postgres/Redis fuera de loopback o red interna.
-- No publicar la imagen OCI a registros externos sin permiso explícito.
-- PR solo contra `Ciudalia/cal.diy`, nunca upstream `calcom/cal.diy` para este trabajo de despliegue personal.
+- Licencia MIT conservada
+- PR solo a `Ciudalia/cal.diy`
+- Sin registros externos, sin credenciales VPS, sin tocar OpenWA/DNS/Zoho

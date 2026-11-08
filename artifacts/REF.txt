@@ -14,5 +14,11 @@ base_images:
   node:22-bookworm@sha256:7702d8aa4d5910871692af4480eb3ba86f23047a6417a44d857d06c95d060d3f
   postgres:16-bookworm@sha256:5264710be20f409750ac6dc4e5706dcef929c87e241605463f0f9aefa932a8d9
   redis:7-bookworm@sha256:2e3eb11462c4e3759e6972678dd051d150ff54b1e60714b3c33b701260172a90
-local_image_tag: caldiy-personal:local
-local_image_id: sha256:805f72d0613a7780f34ff5c23bfea1f17445fbfd7a4c78ff220a45861d8fcacb
+  axllent/mailpit:v1.27@sha256:e22dce5b36f93c77082e204a3942fb6b283b7896e057458400a4c88344c3df68
+image_tag: caldiy-personal:2eb48ecc-agenda-amd64
+image_id_completo: sha256:60c19adab4ea654fab782afe355e0b7c16ecbc0429395e69351315010197c435
+plataforma: linux/amd64
+webapp_url_embebida: https://agenda.ciudalia.com
+export_real_path: /workspace/artifacts/oci-image/caldiy-personal-2eb48ecc-agenda-amd64.docker.tar.gz
+export_real_bytes: 1563630359
+export_real_sha256: b33da0f8f0fef04ea35cf7c5f55297055b60b4d56309abb4b9b5becaa3895f2c

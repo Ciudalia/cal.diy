@@ -1,0 +1,2 @@
+Replacing all statically built instances of http://127.0.0.1:3000 with https://agenda.ciudalia.com.
+after_replace static_files_with_agenda=14 remaining_127_in_static=0

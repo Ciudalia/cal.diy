@@ -62,7 +62,7 @@ RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache
 FROM ${NODE_IMAGE} AS builder-two
 
 WORKDIR /calcom
-ARG NEXT_PUBLIC_WEBAPP_URL=http://127.0.0.1:3000
+ARG NEXT_PUBLIC_WEBAPP_URL=https://agenda.ciudalia.com
 
 ENV NODE_ENV=production
 
@@ -89,13 +89,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends netcat-openbsd 
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder-two /calcom ./
-ARG NEXT_PUBLIC_WEBAPP_URL=http://127.0.0.1:3000
+ARG NEXT_PUBLIC_WEBAPP_URL=https://agenda.ciudalia.com
 ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
   BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
 
 ENV NODE_ENV=production
 EXPOSE 3000
 
+# Healthcheck local al contenedor (no implica URL pública)
 HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
   CMD wget --spider http://127.0.0.1:3000 || exit 1
 

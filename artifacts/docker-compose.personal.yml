@@ -1,13 +1,7 @@
-# Cal.diy — Compose para agenda personal / pruebas (loopback only)
+# Cal.diy — Compose AUXILIAR de BUILD/pruebas locales (NO es el destino VPS).
+# Para despliegue destino: usar artifacts/docker-compose.destino.yml (sin build:,
+# BD/Redis sin ports, Mailpit sumidero, app solo 127.0.0.1).
 # NO usar imagen Scarf/DockerHub no auditada: construye desde este código.
-# PostgreSQL y Redis privados en red interna; puertos solo en 127.0.0.1.
-# No incluye API v2 ni Prisma Studio (superficie mínima para smoke tests).
-#
-# Uso (desde la raíz del repo):
-#   set -a && source artifacts/secrets-local/env.personal && set +a
-#   docker compose -f artifacts/docker-compose.personal.yml up -d database redis
-#   # build (ver RUNBOOK.es.md)
-#   docker compose -f artifacts/docker-compose.personal.yml up -d calcom
 
 name: caldiy-personal
 

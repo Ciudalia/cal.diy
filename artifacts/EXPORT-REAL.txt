@@ -1,0 +1,13 @@
+tipo: EXPORT_REAL (docker save | gzip -1) — NO es estimación
+archivo: /workspace/artifacts/oci-image/caldiy-personal-2eb48ecc-agenda-amd64.docker.tar.gz
+bytes_archivo: 1563630359
+sha256_archivo: b33da0f8f0fef04ea35cf7c5f55297055b60b4d56309abb4b9b5becaa3895f2c
+image_tag: caldiy-personal:2eb48ecc-agenda-amd64
+image_id_completo: sha256:60c19adab4ea654fab782afe355e0b7c16ecbc0429395e69351315010197c435
+image_size_bytes_docker: 7477436455
+plataforma: linux/amd64
+ref_commit: 2eb48eccd8aca8a0c0ffabf28cf92e298b33ecee
+webapp_url_embebida: https://agenda.ciudalia.com
+telemetria: CALCOM_TELEMETRY_DISABLED=1
+gzip_-l:          1563630359          1567787008   0.3% /workspace/artifacts/oci-image/caldiy-personal-2eb48ecc-agenda-amd64.docker.tar
+agent_store_limitacion: fuse.agent-store en /opt/cursor/artifacts acepta ~96MiB max (128MiB falla al close); este archivo NO cabe ahi
