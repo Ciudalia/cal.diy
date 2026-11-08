@@ -1,0 +1,14 @@
+HTTP/1.1 307 Temporary Redirect
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding
+location: /auth/setup?step=1
+Link: </_next/static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2", </_next/static/media/CalSans_SemiBold-s.p.339l157_0_ui6.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2", </_next/static/chunks/1shsyg5pqpdqy.css>; rel=preload; as="style", </_next/static/chunks/1nav-a4joai5u.css>; rel=preload; as="style"
+X-Powered-By: Next.js
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Content-Type: text/html; charset=utf-8
+Date: Sun, 08 Nov 2026 21:48:06 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

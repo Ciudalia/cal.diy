@@ -1,0 +1,2 @@
+login=307 setup=307 setup_step1=200
+SMOKE_OK
